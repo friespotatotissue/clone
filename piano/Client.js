@@ -72,56 +72,99 @@ Client.prototype.connect = function() {
 		return;
 	this.emit("status", "Connecting...");
 	
-	if (window.MPP && window.MPP.socket) {
-		this.socket = window.MPP.socket.init();
-	} else {
-		console.error("Socket.IO configuration not found!");
-		return;
-	}
-
-	var self = this;
-
-	this.socket.on("connect", function() {
-		self.connectionTime = Date.now();
-		self.sendArray([{m: "hi"}]);
-		self.pingInterval = setInterval(function() {
-			self.sendArray([{m: "t", e: Date.now()}]);
-		}, 20000);
-		self.noteBuffer = [];
-		self.noteBufferTime = 0;
-		self.noteFlushInterval = setInterval(function() {
-			if(self.noteBufferTime && self.noteBuffer.length > 0) {
-				self.sendArray([{m: "n", t: self.noteBufferTime + self.serverTimeOffset, n: self.noteBuffer}]);
-				self.noteBufferTime = 0;
-				self.noteBuffer = [];
+	try {
+		if (window.MPP && window.MPP.socket) {
+			// Get socket instance
+			this.socket = window.MPP.socket.init();
+			
+			if (!this.socket) {
+				console.error("Failed to initialize socket");
+				this.emit("status", "Connection failed");
+				return;
 			}
-		}, 200);
-
-		self.emit("connect");
-		self.emit("status", "Joining channel...");
-	});
-
-	this.socket.on("disconnect", function() {
-		self.user = undefined;
-		self.participantId = undefined;
-		self.channel = undefined;
-		self.setParticipants([]);
-		clearInterval(self.pingInterval);
-		clearInterval(self.noteFlushInterval);
-
-		self.emit("disconnect");
-		self.emit("status", "Offline mode");
-	});
-
-	this.socket.on("message", function(msg) {
-		if(Array.isArray(msg)) {
-			for(var i = 0; i < msg.length; i++) {
-				self.emit(msg[i].m, msg[i]);
-			}
-		} else if(msg.m) {
-			self.emit(msg.m, msg);
+		} else {
+			console.error("Socket.IO configuration not found!");
+			this.emit("status", "Connection failed");
+			return;
 		}
-	});
+
+		var self = this;
+
+		this.socket.on("connect", function() {
+			// Add connection timestamp to track rapid reconnects
+			const now = Date.now();
+			if (self.lastConnectAttempt && (now - self.lastConnectAttempt) < 2000) {
+				console.warn("Reconnecting too quickly, enforcing delay");
+				self.socket.disconnect();
+				setTimeout(() => self.connect(), 5000);
+				return;
+			}
+			self.lastConnectAttempt = now;
+
+			self.connectionTime = now;
+			self.connectionAttempts = 0;
+			self.sendArray([{m: "hi"}]);
+			self.pingInterval = setInterval(function() {
+				self.sendArray([{m: "t", e: Date.now()}]);
+			}, 20000);
+			self.noteBuffer = [];
+			self.noteBufferTime = 0;
+			self.noteFlushInterval = setInterval(function() {
+				if(self.noteBufferTime && self.noteBuffer.length > 0) {
+					self.sendArray([{m: "n", t: self.noteBufferTime + self.serverTimeOffset, n: self.noteBuffer}]);
+					self.noteBufferTime = 0;
+					self.noteBuffer = [];
+				}
+			}, 200);
+
+			self.emit("connect");
+			self.emit("status", "Joining channel...");
+		});
+
+		this.socket.on("disconnect", function(reason) {
+			self.user = undefined;
+			self.participantId = undefined;
+			self.channel = undefined;
+			self.setParticipants([]);
+			clearInterval(self.pingInterval);
+			clearInterval(self.noteFlushInterval);
+
+			self.emit("disconnect");
+			self.emit("status", "Offline mode");
+			
+			// Only increment connection attempts for unexpected disconnects
+			if (reason !== 'io client disconnect') {
+				self.connectionAttempts++;
+				
+				// Add exponential backoff for reconnection attempts
+				if (self.connectionAttempts > 3) {
+					const delay = Math.min(1000 * Math.pow(2, self.connectionAttempts - 3), 30000);
+					console.warn(`Too many reconnection attempts, waiting ${delay}ms before next attempt`);
+					setTimeout(() => self.connect(), delay);
+					return;
+				}
+			}
+		});
+
+		this.socket.on("message", function(msg) {
+			try {
+				if(Array.isArray(msg)) {
+					for(var i = 0; i < msg.length; i++) {
+						self.emit(msg[i].m, msg[i]);
+					}
+				} else if(msg.m) {
+					self.emit(msg.m, msg);
+				}
+			} catch (error) {
+				console.error("Error processing message:", error);
+				// Don't disconnect on message processing errors
+			}
+		});
+
+	} catch (error) {
+		console.error("Error during connection:", error);
+		this.emit("status", "Connection error");
+	}
 };
 
 Client.prototype.bindEventListeners = function() {
