@@ -25,7 +25,7 @@ table { border: 0; padding: 0; margin: 0; }
 	border-radius: 2px; -webkit-border-radius: 2px; -moz-border-radius: 2px; 
 	min-width: 50px; text-align: center; cursor: pointer; line-height: 15px; }
 #names .name.me:after { content: "Me"; position: absolute; top: -4px; right: 50%; font-size: 10px; }
-#names .name.owner:before { content: url('/piano/crown.png'); position: absolute; top: -8px; left: 4px; }
+#names .name.owner:before { content: url('/images/crown.png'); position: absolute; top: -8px; left: 4px; }
 #names .name.play { transform: translateY(-4px); -webkit-transform: translateY(-4px); }
 #names .name.muted-notes { color: #f88; }
 #names .name.muted-notes:after { content: "MUTE"; position: absolute; top: -4px; right: 50%; font-size: 8px; }
@@ -55,11 +55,11 @@ table { border: 0; padding: 0; margin: 0; }
 .slide-left { left: -100%; }
 .slide-right { left: 100%; }
 
-.cursor { width: 16px; height: 24px; background: url('/piano/cursor.png'); position: absolute; pointer-events: none;
+.cursor { width: 16px; height: 24px; background: url('/images/cursor.png'); position: absolute; pointer-events: none;
 	margin-left: -2px; margin-top: -2px; left: 200%; top: 100%;}
 .cursor .name { display: inline; position: relative; left: 16px; top: 8px; pointer-events: none; color: #fff; background: #000;
 	border-radius: 2px; -webkit-border-radius: 2px; -moz-border-radius: 2px; white-space:nowrap; padding: 1px; font-size: 10px; }
-.cursor.owner .name:after { content: url('/piano/crown.png'); position: relative; top: -8px; left: 0px; }
+.cursor.owner .name:after { content: url('/images/crown.png'); position: relative; top: -8px; left: 0px; }
 .cursor .name { display: inline-block; }
 /* .cursor .spotlight { display: none; position: relative; left: -14px; top: -9px; width: 32px; height: 32px;
 	 border: 4px solid white; -webkit-border-radius: 100%; } */
@@ -76,7 +76,7 @@ table { border: 0; padding: 0; margin: 0; }
 .participant-menu .menu-item:hover { background: rgba(255,255,255,0.4); }
 .participant-menu .menu-item.clicked { background: rgba(255,255,255,0.5); }
 
-#crown { position: absolute; width: 16px; height: 16px; background: url('/piano/crown.png') no-repeat; cursor: pointer;
+#crown { position: absolute; width: 16px; height: 16px; background: url('/images/crown.png') no-repeat; cursor: pointer;
 	font-size: 10px; }
 #crown span { margin-left: 16px; margin-top: 2px; }
 
@@ -95,7 +95,7 @@ table { border: 0; padding: 0; margin: 0; }
  #room .info.no-chat:after { content: url('/piano/no-chat.png'); position: relative; top: 2px; margin-left: 4px; } */
 #room .info.banned { color: rgba(255, 64, 64, 0.5); }
 
-#room .expand { width: 24px; height: 100%; position: absolute; right: 0; top: 0; background: #aba url('/piano/arrow.png') no-repeat center 0%; }
+#room .expand { width: 24px; height: 100%; position: absolute; right: 0; top: 0; background: #aba url('/images/arrow.png') no-repeat center 0%; }
 #room .more { display: none; position: absolute; bottom: 100%; left: -1px; width: 100%; overflow: hidden; overflow-y: scroll; background: #898;
 	border: 1px solid #aba; max-height: 600px; }
 #room .more > div { margin: 0; padding: 3px 6px 0px 6px; width: 100%; height: 20px; }
@@ -123,7 +123,7 @@ table { border: 0; padding: 0; margin: 0; }
 #status .number { font-size: 35px; }
 
 #volume { position: absolute; right: 20px; top: 0px; width: 100px; height: 40px; margin: 10px; }
-.volume-slider { width: 100%; height: 100%; background: url("volume2.png") no-repeat; background-position: 50% 50%;
+.volume-slider { width: 100%; height: 100%; background: url("/images/volume2.png") no-repeat; background-position: 50% 50%;
 	-webkit-appearance: none; }
 
 #volume-label { position: absolute; right: 30px; bottom: 10px; font-size: 10px; color: #ccc; }

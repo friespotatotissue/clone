@@ -125,11 +125,7 @@ io.on('connection', (socket) => {
                         }
 
                         // Join or create new room
-                        let roomId = msg._id || 'lobby';
-                        // Only append -original if it's not already there
-                        if (!roomId.endsWith('-original')) {
-                            roomId += '-original';
-                        }
+                        const roomId = msg._id || 'lobby';
                         let room = rooms.get(roomId);
                         if (!room) {
                             room = createRoom(roomId, msg.set);
