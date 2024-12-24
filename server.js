@@ -4,8 +4,9 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const path = require('path');
 
-// Serve static files
+// Serve static files - make sure piano/audio is accessible
 app.use('/piano', express.static(path.join(__dirname)));
+app.use('/piano/audio', express.static(path.join(__dirname, 'audio')));
 
 // Root route - redirect to piano
 app.get('/', (req, res) => {

@@ -40,7 +40,7 @@ $(function() {
 
 
 
-	var gSoundPath = "piano/audio/default/";
+	var gSoundPath = "/piano/audio/default/";
 	var gSoundExt = ".mp3";
 	
 	// Yoshify.
@@ -2181,6 +2181,7 @@ Rect.prototype.contains = function(x, y) {
 			return false;
 		});
 	})();
+
 
 
 
