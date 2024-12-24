@@ -1,2 +1,5 @@
 const Server = require('./structures/Server.js');
-module.exports = new Server();
+const server = new Server();
+
+// Start the server
+server.start();
