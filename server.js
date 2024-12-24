@@ -33,6 +33,8 @@ const io = new Server(server, {
 app.use('/piano', express.static(path.join(__dirname, 'piano')));
 // Serve audio files from the audio directory under the piano path
 app.use('/piano/audio', express.static(path.join(__dirname, 'audio')));
+// Serve images from the images directory
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(express.static(__dirname));
 
 // Add CORS headers for Railway deployment
@@ -123,7 +125,11 @@ io.on('connection', (socket) => {
                         }
 
                         // Join or create new room
-                        const roomId = (msg._id || 'lobby') + '-original';
+                        let roomId = msg._id || 'lobby';
+                        // Only append -original if it's not already there
+                        if (!roomId.endsWith('-original')) {
+                            roomId += '-original';
+                        }
                         let room = rooms.get(roomId);
                         if (!room) {
                             room = createRoom(roomId, msg.set);
