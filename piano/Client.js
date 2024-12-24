@@ -72,10 +72,12 @@ Client.prototype.connect = function() {
 		return;
 	this.emit("status", "Connecting...");
 	
-	this.socket = io(this.uri, {
-		transports: ['websocket'],
-		upgrade: false
-	});
+	if (window.MPP && window.MPP.socket) {
+		this.socket = window.MPP.socket.init();
+	} else {
+		console.error("Socket.IO configuration not found!");
+		return;
+	}
 
 	var self = this;
 
@@ -109,8 +111,6 @@ Client.prototype.connect = function() {
 
 		self.emit("disconnect");
 		self.emit("status", "Offline mode");
-
-		// reconnect handling is automatic in socket.io
 	});
 
 	this.socket.on("message", function(msg) {
@@ -121,30 +121,6 @@ Client.prototype.connect = function() {
 		} else if(msg.m) {
 			self.emit(msg.m, msg);
 		}
-	});
-
-	this.socket.on("hi", function(msg) {
-		self.emit("hi", msg);
-	});
-
-	this.socket.on("t", function(msg) {
-		self.emit("t", msg);
-	});
-
-	this.socket.on("ch", function(msg) {
-		self.emit("ch", msg);
-	});
-
-	this.socket.on("p", function(msg) {
-		self.emit("p", msg);
-	});
-
-	this.socket.on("n", function(msg) {
-		self.emit("n", msg);
-	});
-
-	this.socket.on("bye", function(msg) {
-		self.emit("bye", msg);
 	});
 };
 

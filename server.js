@@ -5,13 +5,28 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
+
+// Enhanced Socket.IO configuration
 const io = new Server(server, {
     cors: {
         origin: "*",
-        methods: ["GET", "POST"]
+        methods: ["GET", "POST"],
+        credentials: true
     },
+    allowEIO3: true,  // Allow Engine.IO 3 compatibility
     transports: ['websocket', 'polling'],
-    pingTimeout: 60000
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    upgradeTimeout: 30000,
+    maxHttpBufferSize: 1e8,
+    path: '/socket.io/',  // Explicit path
+    connectTimeout: 45000,
+    // Add debug logs
+    logger: {
+        debug: (...args) => console.log('Socket.IO [debug]:', ...args),
+        info: (...args) => console.log('Socket.IO [info]:', ...args),
+        error: (...args) => console.log('Socket.IO [error]:', ...args),
+    }
 });
 
 // Serve static files from the piano directory
