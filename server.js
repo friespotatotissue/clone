@@ -123,7 +123,7 @@ io.on('connection', (socket) => {
                         }
 
                         // Join or create new room
-                        const roomId = msg._id || 'lobby';
+                        const roomId = (msg._id || 'lobby') + '-original';
                         let room = rooms.get(roomId);
                         if (!room) {
                             room = createRoom(roomId, msg.set);
