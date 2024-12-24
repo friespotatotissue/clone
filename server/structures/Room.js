@@ -31,8 +31,7 @@ class Room {
       };
     }
     this.settings.black = this.settings.lobby ? false : this._id.toLowerCase().includes('black');
-    // eslint-disable-next-line no-extra-parens
-    this.settings.original = !this.settings.black ? (!this.settings.lobby ? this._id.toLowerCase().includes('original') : false) : false;
+    this.settings.original = false;
     this.crown = null;
     this.ppl = [];
     this.chat = new Chat();
