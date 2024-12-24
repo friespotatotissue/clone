@@ -9,7 +9,9 @@ const io = new Server(server, {
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
-    }
+    },
+    transports: ['websocket', 'polling'],
+    pingTimeout: 60000
 });
 
 // Serve static files from the piano directory
@@ -28,7 +30,7 @@ app.use((req, res, next) => {
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-    console.log('New client connected');
+    console.log('New client connected:', socket.id);
     
     // Send initial connection status
     socket.emit('hi', {
@@ -73,7 +75,7 @@ io.on('connection', (socket) => {
 
     // Handle disconnection
     socket.on('disconnect', () => {
-        console.log('Client disconnected');
+        console.log('Client disconnected:', socket.id);
         socket.broadcast.emit('bye', { p: socket.id });
     });
 });
