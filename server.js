@@ -35,6 +35,13 @@ app.use('/piano', express.static(path.join(__dirname, 'piano')));
 app.use('/piano/audio', express.static(path.join(__dirname, 'audio')));
 // Serve images from the images directory
 app.use('/images', express.static(path.join(__dirname, 'images')));
+
+// Serve index.html at the root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Serve other static files
 app.use(express.static(__dirname));
 
 // Add CORS headers for Railway deployment
