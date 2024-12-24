@@ -1,18 +1,14 @@
 const express = require('express');
 const http = require('http');
-const WebSocket = require('ws');
+const { Server } = require('socket.io');
 const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-
-// Configure WebSocket server with proper headers
-const wss = new WebSocket.Server({ 
-    server,
-    perMessageDeflate: false,
-    clientTracking: true,
-    handleProtocols: (protocols, req) => {
-        return protocols[0];
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
     }
 });
 
@@ -30,45 +26,60 @@ app.use((req, res, next) => {
     next();
 });
 
-// WebSocket connection handling
-wss.on('connection', function connection(ws, req) {
+// Socket.IO connection handling
+io.on('connection', (socket) => {
     console.log('New client connected');
     
     // Send initial connection status
-    const hiMessage = JSON.stringify([{
+    socket.emit('hi', {
         m: "hi",
         u: { name: "Anonymous", color: "#777" },
         t: Date.now()
-    }]);
-    ws.send(hiMessage);
+    });
 
-    ws.on('message', function incoming(message) {
+    // Handle incoming messages
+    socket.on('message', (data) => {
         try {
-            const data = JSON.parse(message);
-            // Broadcast the message to all connected clients
-            wss.clients.forEach(function each(client) {
-                if (client !== ws && client.readyState === WebSocket.OPEN) {
-                    client.send(message.toString());
-                }
-            });
+            // Broadcast the message to all other clients
+            socket.broadcast.emit('message', data);
         } catch (e) {
             console.error('Error processing message:', e);
         }
     });
 
-    // Handle client disconnection
-    ws.on('close', function close() {
-        console.log('Client disconnected');
+    // Handle note events
+    socket.on('n', (data) => {
+        socket.broadcast.emit('n', data);
     });
-});
 
-// Error handling
-wss.on('error', function error(error) {
-    console.error('WebSocket server error:', error);
+    // Handle channel events
+    socket.on('ch', (data) => {
+        socket.broadcast.emit('ch', data);
+    });
+
+    // Handle participant events
+    socket.on('p', (data) => {
+        socket.broadcast.emit('p', data);
+    });
+
+    // Handle timing events
+    socket.on('t', (data) => {
+        socket.emit('t', {
+            m: "t",
+            t: Date.now(),
+            e: data.e
+        });
+    });
+
+    // Handle disconnection
+    socket.on('disconnect', () => {
+        console.log('Client disconnected');
+        socket.broadcast.emit('bye', { p: socket.id });
+    });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-    console.log(`WebSocket server is ready`);
+    console.log(`Socket.IO server is ready`);
 }); 

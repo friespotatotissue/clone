@@ -1,7 +1,7 @@
 /* eslint-disable */
 if(typeof module !== "undefined") {
 	module.exports = Client;
-	WebSocket = require("ws");
+	io = require("socket.io-client");
 	EventEmitter = require("events").EventEmitter;
 } else {
 	this.Client = Client;
@@ -19,8 +19,8 @@ function mixin(obj1, obj2) {
 
 function Client(uri) {
 	EventEmitter.call(this);
-	this.uri = uri || (window.MPP && window.MPP.serverConfig ? window.MPP.serverConfig.getWebSocketURL() : window.location.href);
-	this.ws = undefined;
+	this.uri = uri || (window.MPP && window.MPP.serverConfig ? window.MPP.serverConfig.getWebSocketURL() : window.location.origin);
+	this.socket = undefined;
 	this.serverTimeOffset = 0;
 	this.user = undefined;
 	this.participantId = undefined;
@@ -46,15 +46,15 @@ mixin(Client.prototype, EventEmitter.prototype);
 Client.prototype.constructor = Client;
 
 Client.prototype.isSupported = function() {
-	return typeof WebSocket === "function";
+	return typeof io !== "undefined";
 };
 
 Client.prototype.isConnected = function() {
-	return this.isSupported() && this.ws && this.ws.readyState === WebSocket.OPEN;
+	return this.isSupported() && this.socket && this.socket.connected;
 };
 
 Client.prototype.isConnecting = function() {
-	return this.isSupported() && this.ws && this.ws.readyState === WebSocket.CONNECTING;
+	return this.isSupported() && this.socket && this.socket.connecting;
 };
 
 Client.prototype.start = function() {
@@ -64,59 +64,27 @@ Client.prototype.start = function() {
 
 Client.prototype.stop = function() {
 	this.canConnect = false;
-	this.ws.close();
+	if(this.socket) this.socket.disconnect();
 };
 
 Client.prototype.connect = function() {
 	if(!this.canConnect || !this.isSupported() || this.isConnected() || this.isConnecting())
 		return;
 	this.emit("status", "Connecting...");
-	if(typeof module !== "undefined") {
-		// nodejsicle
-		this.ws = new WebSocket(this.uri, {
-      "origin": "http://www.multiplayerpiano.com",
-      "user-agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.85 Safari/537.36"
-		});
-	} else {
-		// browseroni
-		this.ws = new WebSocket(this.uri);
-	}
+	
+	this.socket = io(this.uri, {
+		transports: ['websocket'],
+		upgrade: false
+	});
+
 	var self = this;
-	this.ws.addEventListener("close", function(evt) {
-		self.user = undefined;
-		self.participantId = undefined;
-		self.channel = undefined;
-		self.setParticipants([]);
-		clearInterval(self.pingInterval);
-		clearInterval(self.noteFlushInterval);
 
-		self.emit("disconnect");
-		self.emit("status", "Offline mode");
-
-		// reconnect!
-		if(self.connectionTime) {
-			self.connectionTime = undefined;
-			self.connectionAttempts = 0;
-		} else {
-			++self.connectionAttempts;
-		}
-		var ms_lut = [50, 2950, 7000, 10000];
-		var idx = self.connectionAttempts;
-		if(idx >= ms_lut.length) idx = ms_lut.length - 1;
-		var ms = ms_lut[idx];
-		setTimeout(self.connect.bind(self), ms);
-	});
-	this.ws.addEventListener("error", function() {
-		console.trace(arguments);
-		self.ws.close(); // self.ws.emit("close");
-	});
-	this.ws.addEventListener("open", function(evt) {
+	this.socket.on("connect", function() {
 		self.connectionTime = Date.now();
 		self.sendArray([{m: "hi"}]);
 		self.pingInterval = setInterval(function() {
 			self.sendArray([{m: "t", e: Date.now()}]);
 		}, 20000);
-		//self.sendArray([{m: "t", e: Date.now()}]);
 		self.noteBuffer = [];
 		self.noteBufferTime = 0;
 		self.noteFlushInterval = setInterval(function() {
@@ -130,13 +98,53 @@ Client.prototype.connect = function() {
 		self.emit("connect");
 		self.emit("status", "Joining channel...");
 	});
-	this.ws.addEventListener("message", function(evt) {
-		var transmission = JSON.parse(evt.data);
-		// console.log(transmission);
-		for(var i = 0; i < transmission.length; i++) {
-			var msg = transmission[i];
+
+	this.socket.on("disconnect", function() {
+		self.user = undefined;
+		self.participantId = undefined;
+		self.channel = undefined;
+		self.setParticipants([]);
+		clearInterval(self.pingInterval);
+		clearInterval(self.noteFlushInterval);
+
+		self.emit("disconnect");
+		self.emit("status", "Offline mode");
+
+		// reconnect handling is automatic in socket.io
+	});
+
+	this.socket.on("message", function(msg) {
+		if(Array.isArray(msg)) {
+			for(var i = 0; i < msg.length; i++) {
+				self.emit(msg[i].m, msg[i]);
+			}
+		} else if(msg.m) {
 			self.emit(msg.m, msg);
 		}
+	});
+
+	this.socket.on("hi", function(msg) {
+		self.emit("hi", msg);
+	});
+
+	this.socket.on("t", function(msg) {
+		self.emit("t", msg);
+	});
+
+	this.socket.on("ch", function(msg) {
+		self.emit("ch", msg);
+	});
+
+	this.socket.on("p", function(msg) {
+		self.emit("p", msg);
+	});
+
+	this.socket.on("n", function(msg) {
+		self.emit("n", msg);
+	});
+
+	this.socket.on("bye", function(msg) {
+		self.emit("bye", msg);
 	});
 };
 
@@ -173,11 +181,11 @@ Client.prototype.bindEventListeners = function() {
 };
 
 Client.prototype.send = function(raw) {
-	if(this.isConnected()) this.ws.send(raw);
+	if(this.isConnected()) this.socket.emit("message", raw);
 };
 
 Client.prototype.sendArray = function(arr) {
-	this.send(JSON.stringify(arr));
+	this.send(arr);
 };
 
 Client.prototype.setChannel = function(id, set) {
