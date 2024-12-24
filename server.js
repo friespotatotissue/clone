@@ -32,51 +32,81 @@ app.use((req, res, next) => {
 io.on('connection', (socket) => {
     console.log('New client connected:', socket.id);
     
-    // Send initial connection status
-    socket.emit('hi', {
+    // Send initial connection status in array format
+    socket.emit('message', [{
         m: "hi",
-        u: { name: "Anonymous", color: "#777" },
-        t: Date.now()
-    });
+        u: { 
+            _id: socket.id,
+            name: "Anonymous",
+            color: "#777"
+        },
+        t: Date.now(),
+        p: socket.id
+    }]);
 
     // Handle incoming messages
     socket.on('message', (data) => {
         try {
-            // Broadcast the message to all other clients
-            socket.broadcast.emit('message', data);
+            const messages = Array.isArray(data) ? data : [data];
+            
+            messages.forEach(msg => {
+                switch(msg.m) {
+                    case "hi":
+                        // Already handled in connection
+                        break;
+                    case "t":
+                        // Handle timing message
+                        socket.emit('message', [{
+                            m: "t",
+                            t: Date.now(),
+                            e: msg.e
+                        }]);
+                        break;
+                    case "ch":
+                        // Handle channel join/update
+                        const channelMsg = {
+                            m: "ch",
+                            p: socket.id,
+                            ch: {
+                                _id: msg._id || "lobby",
+                                settings: {
+                                    visible: true,
+                                    chat: true,
+                                    crownsolo: false,
+                                    color: "#ecfaed"
+                                }
+                            },
+                            ppl: []
+                        };
+                        socket.emit('message', [channelMsg]);
+                        socket.broadcast.emit('message', [channelMsg]);
+                        break;
+                    case "n":
+                        // Handle note message
+                        socket.broadcast.emit('message', [{
+                            m: "n",
+                            n: msg.n,
+                            t: msg.t,
+                            p: socket.id
+                        }]);
+                        break;
+                    default:
+                        // Broadcast other messages
+                        socket.broadcast.emit('message', [msg]);
+                }
+            });
         } catch (e) {
             console.error('Error processing message:', e);
         }
     });
 
-    // Handle note events
-    socket.on('n', (data) => {
-        socket.broadcast.emit('n', data);
-    });
-
-    // Handle channel events
-    socket.on('ch', (data) => {
-        socket.broadcast.emit('ch', data);
-    });
-
-    // Handle participant events
-    socket.on('p', (data) => {
-        socket.broadcast.emit('p', data);
-    });
-
-    // Handle timing events
-    socket.on('t', (data) => {
-        socket.emit('t', {
-            m: "t",
-            t: Date.now(),
-            e: data.e
-        });
-    });
-
     // Handle disconnection
     socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id);
-        socket.broadcast.emit('bye', { p: socket.id });
+        io.emit('message', [{
+            m: "bye",
+            p: socket.id
+        }]);
     });
 });
 
