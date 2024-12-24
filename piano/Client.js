@@ -19,7 +19,7 @@ function mixin(obj1, obj2) {
 
 function Client(uri) {
 	EventEmitter.call(this);
-	this.uri = uri;
+	this.uri = uri || (window.MPP && window.MPP.serverConfig ? window.MPP.serverConfig.getWebSocketURL() : window.location.href);
 	this.ws = undefined;
 	this.serverTimeOffset = 0;
 	this.user = undefined;
