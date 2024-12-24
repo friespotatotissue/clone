@@ -1,18 +1,7 @@
 * { margin: 0; }
 * { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
-html, body { width: 100%; height: 100%; overflow: hidden; font: 20pt verdana; color: white; text-shadow: #444 1px 1px; }
-body { position: absolute; }
-body {
-background: #3b5054; /* Old browsers */
-background: -moz-radial-gradient(center, ellipse cover,  #ecfafd 0%, #c5d5d8 100%); /* FF3.6+ */
-background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#ecfafd), color-stop(100%,#c5d5d8)); /* Chrome,Safari4+ */
-background: -webkit-radial-gradient(center, ellipse cover,  #ecfafd 0%,#c5d5d8 100%); /* Chrome10+,Safari5.1+ */
-background: -o-radial-gradient(center, ellipse cover,  #ecfafd 0%,#c5d5d8 100%); /* Opera 12+ */
-background: -ms-radial-gradient(center, ellipse cover,  #ecfafd 0%,#c5d5d8 100%); /* IE10+ */
-background: radial-gradient(ellipse at center,  #ecfafd 0%,#c5d5d8 100%); /* W3C */
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ecfafd', endColorstr='#c5d5d8',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
--webkit-transition: background 1000ms linear;
-}
+html, body { width: 100%; height: 100%; overflow: hidden; font: 20pt verdana; color: #444; text-shadow: #444 1px 1px; margin: 0; padding: 0; }
+body { position: relative; background: #ecfafd; background: -webkit-radial-gradient(center, ellipse cover, #ecfafd 0%, #c5d5d8 100%); background: radial-gradient(ellipse at center, #ecfafd 0%, #c5d5d8 100%); display: flex; flex-direction: column; }
 
 a { cursor: pointer; color: #f46; transition: color 0.25s; }
 a:hover { color: #e05; transition: color 0.25s; }
@@ -32,14 +21,14 @@ table { border: 0; padding: 0; margin: 0; }
 #names .name.muted-chat { color: #f88; }
 #names .name.muted-chat:after { content: "MUTE"; position: absolute; top: -4px; right: 50%; font-size: 8px; }
 
-#piano { width: 95%; height: 20%; margin: auto; position: relative; overflow: hidden; padding-left: 1%; }
-#piano .key { float: left; width: 1.8%; height: 90%; border: 1px solid black; background: #fff; 
+#piano { width: 95%; height: 20%; margin: 20px auto; position: relative; overflow: visible; padding-left: 1%; display: block; min-height: 150px; }
+#piano .key { float: left; width: 1.8%; height: 90%; border: 1px solid #000; background: #fff; 
 	margin-left: -0.5%; margin-bottom: 100%;
 	box-shadow: 1px 2px 5px #000; -webkit-box-shadow: 1px 2px 5px #000; -moz-box-shadow: 1px 2px 5px #000;
 	border-radius: 2px; -webkit-border-radius: 2px; -moz-border-radius: 2px;
 	transition: background 4s ease-out; -webkit-transition: background 4s ease-out; -moz-transition: background 4s ease-out;
 	-o-transition: background 4s ease-out; padding: 0px;
-	overflow: hidden; }
+	overflow: hidden; position: relative; }
 #piano .key.c, #piano .key.f { margin-left: 0; }
 #piano .key.sharp { width: 1.2%; height: 50%; background: #000; margin-left: -0.9%;
 	position: relative; }
@@ -82,7 +71,7 @@ table { border: 0; padding: 0; margin: 0; }
 
 #crownsolo-notice { position: fixed; top: 20%; width: 100%; text-align: center; opacity: 0.5; font-size: 20px; pointer-events: none; display: none; }
 
-#bottom{ position: fixed; bottom: 0px; left: 0px; width: 100%; height: 60px; background: #9a9; margin-bottom: 3px; }
+#bottom{ position: fixed; bottom: 0px; left: 0px; width: 100%; height: 60px; background: rgba(154, 170, 154, 0.9); margin-bottom: 3px; z-index: 500; }
 
 #room, #room * { cursor: pointer; }
 #room { position: absolute; left: 0; top: 0; padding: 5px; width: 240px; height: 12px; background: #898; border: 1px solid #aba; cursor: pointer;
